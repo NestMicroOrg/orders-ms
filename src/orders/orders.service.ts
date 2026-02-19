@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from 'src/prisma.service';
 import { RpcException } from '@nestjs/microservices';
-import { OrderPaginationDto } from './dto';
+import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
 import { OrderStatus } from 'generated/prisma/enums';
 
 @Injectable()
@@ -60,5 +60,17 @@ export class OrdersService {
       });
     }
     return order;
+  }
+
+  async changeStatus(changeOrderStatusDto: ChangeOrderStatusDto) {
+
+    const { id, status } = changeOrderStatusDto;
+
+    const order = await this.findOne(id);
+
+    return await this.prisma.order.update({
+      where: { id },
+      data: { status }
+    });
   }
 }
