@@ -9,8 +9,14 @@ export class OrdersController {
 
   @MessagePattern('createOrder')
   create(@Payload() createOrderDto: CreateOrderDto) {
+    console.log('Received createOrder message with payload:', createOrderDto);
     return this.ordersService.create(createOrderDto);
   }
+  // @MessagePattern('createOrder')
+  // create(@Payload() data: any) {
+  //   console.log('Received:', data);
+  //   return { ok: true };
+  // }
 
   @MessagePattern('findAllOrders')
   findAll() {
