@@ -6,10 +6,10 @@ export class PaginationDto {
     @IsOptional()
     @IsPositive({ message: 'The page must be a positive number' })
     @Type(() => Number)
-    page?: number;
+    page?: number = 1;
 
     @IsOptional()
     @IsPositive({ message: 'The limit must be a positive number' })
     @Type(() => Number)
-    limit?: number;
+    limit?: number = 10;
 }
