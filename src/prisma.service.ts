@@ -1,3 +1,4 @@
+import 'dotenv/config';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaClient } from '../generated/prisma/client';
@@ -9,8 +10,12 @@ export class PrismaService extends PrismaClient {
     private logger = new Logger('PrismaService');
 
     constructor() {
-        const adapter = new PrismaPg({ url: process.env.DATABASE_URL });
+        const connectionString = process.env.DATABASE_URL;
+        const adapter = new PrismaPg({
+            connectionString,
+        });
         super({ adapter });
+        this.logger.log('URL', connectionString);
 
         this.logger.log('Database connection established');
     }

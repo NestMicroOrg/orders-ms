@@ -7,8 +7,17 @@ export class OrdersService {
 
   constructor(private prisma: PrismaService) { }
 
-  create(createOrderDto: CreateOrderDto) {
-    return createOrderDto;
+  async create(createOrderDto: CreateOrderDto) {
+
+    const { status, ...rest } = createOrderDto;
+
+    const order = await this.prisma.order.create({
+      data: {
+        ...rest,
+        status: status || 'PENDING',
+      }
+    });
+    return order;
   }
 
   findAll() {
