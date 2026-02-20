@@ -68,6 +68,10 @@ export class OrdersService {
 
     const order = await this.findOne(id);
 
+    if (order.status === status) {
+      return order;
+    }
+
     return await this.prisma.order.update({
       where: { id },
       data: { status }
