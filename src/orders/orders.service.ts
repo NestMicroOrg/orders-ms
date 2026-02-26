@@ -1,26 +1,39 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from 'src/prisma.service';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
 import { OrderStatus } from 'generated/prisma/enums';
+import { PRODUCT_SERVICE } from 'src/config';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
 
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    @Inject(PRODUCT_SERVICE) private readonly productClient: ClientProxy
+  ) { }
 
   async create(createOrderDto: CreateOrderDto) {
 
-    const { status, ...rest } = createOrderDto;
+    const ids = [6, 7]
 
-    const order = await this.prisma.order.create({
-      data: {
-        ...rest,
-        status: status || 'PENDING',
-      }
-    });
-    return order;
+    const products = await firstValueFrom(
+      this.productClient.send({ cmd: 'validate_product' }, ids)
+    )
+
+    return products;
+
+    // const { status, ...rest } = createOrderDto;
+
+    // const order = await this.prisma.order.create({
+    //   data: {
+    //     ...rest,
+    //     status: status || 'PENDING',
+    //   }
+    // });
+    // return order;
   }
 
   async findAll(paginationDto: OrderPaginationDto) {
