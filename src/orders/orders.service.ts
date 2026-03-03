@@ -64,8 +64,13 @@ export class OrdersService {
       }
     });
 
-    return order;
-
+    return {
+      ...order,
+      orderItems: order.orderItems.map(item => ({
+        ...item,
+        name: products.find(p => p.id === item.productId).name
+      }))
+    };
 
   }
 
