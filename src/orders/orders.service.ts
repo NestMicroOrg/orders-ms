@@ -3,8 +3,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaService } from 'src/prisma.service';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
-import { OrderStatus } from 'generated/prisma/enums';
-import { PRODUCT_SERVICE } from 'src/config';
+import { NATS_SERVICE } from 'src/config';
 import { catchError, firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -12,7 +11,7 @@ export class OrdersService {
 
   constructor(
     private prisma: PrismaService,
-    @Inject(PRODUCT_SERVICE) private readonly productClient: ClientProxy
+    @Inject(NATS_SERVICE) private readonly client: ClientProxy
   ) { }
 
   async create(createOrderDto: CreateOrderDto) {
@@ -21,7 +20,7 @@ export class OrdersService {
     // 1. Validate products
     const productIds = createOrderDto.items.map(item => item.productId);
     const products: any[] = await firstValueFrom(
-      this.productClient.send({ cmd: 'validate_product' }, { productIds })
+      this.client.send({ cmd: 'validate_product' }, { productIds })
         .pipe(catchError(err => { throw new RpcException(err) }))
     );
 
@@ -123,7 +122,7 @@ export class OrdersService {
 
     const productIds = order.orderItems.map(item => item.productId);
     const products: any[] = await firstValueFrom(
-      this.productClient.send({ cmd: 'validate_product' }, { productIds })
+      this.client.send({ cmd: 'validate_product' }, { productIds })
         .pipe(catchError(err => { throw new RpcException(err) }))
     );
 
