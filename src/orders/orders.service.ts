@@ -102,15 +102,38 @@ export class OrdersService {
 
   async findOne(id: string) {
     const order = await this.prisma.order.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        orderItems: {
+          select: {
+            productId: true,
+            quantity: true,
+            price: true
+          }
+        }
+      }
     });
+
     if (!order) {
       throw new RpcException({
         status: HttpStatus.NOT_FOUND,
         message: `Order with id ${id} not found`
       });
     }
-    return order;
+
+    const productIds = order.orderItems.map(item => item.productId);
+    const products: any[] = await firstValueFrom(
+      this.productClient.send({ cmd: 'validate_product' }, { productIds })
+        .pipe(catchError(err => { throw new RpcException(err) }))
+    );
+
+    return {
+      ...order,
+      orderItems: order.orderItems.map(item => ({
+        ...item,
+        name: products.find(p => p.id === item.productId)?.name || 'Unknown Product'
+      }))
+    };
   }
 
   async changeStatus(changeOrderStatusDto: ChangeOrderStatusDto) {
