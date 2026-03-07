@@ -5,6 +5,7 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ChangeOrderStatusDto, OrderPaginationDto } from './dto';
 import { NATS_SERVICE } from 'src/config';
 import { catchError, firstValueFrom } from 'rxjs';
+import { OrderWithProducts } from './interfaces/order-with-products';
 
 @Injectable()
 export class OrdersService {
@@ -149,5 +150,20 @@ export class OrdersService {
       where: { id },
       data: { status }
     });
+  }
+
+  async createPaymentSession(order: OrderWithProducts) {
+    const paymentSession = await firstValueFrom(
+      this.client.send('create.payment.session', {
+        orderId: order.id,
+        currency: 'usd',
+        items: order.orderItems.map(item => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      })
+    );
+    return paymentSession;
   }
 }
